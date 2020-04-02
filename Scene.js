@@ -5,7 +5,7 @@ import {
   View,
   Text,
 } from 'react-native';
-import DeleteModal from "./DeleteModal";
+import { useDeleteModal } from "./DeleteModal";
 
 const styles = StyleSheet.create({
   scene: {
@@ -19,31 +19,23 @@ const styles = StyleSheet.create({
 });
 
 const Scene = () => {
-  const [visible, setVisible] = React.useState(false);
+  const deleteModal = useDeleteModal();
 
-  function showModal() {
-    setVisible(true);
-  }
-  function hideModal() {
-    setVisible(false);
+  async function showModal() {
+    const result = await deleteModal.open();
+    if (result) {
+      // We want to delete, process
+    } else {
+      // Nothing to do, the modal closes itself
+    }
   }
 
-  function deleteContent() {
-    // delete the content
-    hideModal();
-  }
 
   return (
     <View style={styles.scene}>
-        <TouchableOpacity onPress={showModal}>
-          <Text style={styles.text}>Touch to delete the item</Text>
-        </TouchableOpacity>
-        <DeleteModal
-          isVisible={visible}
-          close={hideModal}
-          onPressYes={deleteContent}
-          onPressNo={hideModal}
-        />
+      <TouchableOpacity onPress={showModal}>
+        <Text style={styles.text}>Touch to delete the item</Text>
+      </TouchableOpacity>
     </View>
   );
 };

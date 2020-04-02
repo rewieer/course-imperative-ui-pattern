@@ -28,24 +28,91 @@ const styles = StyleSheet.create({
   }
 });
 
+const ModalContext = React.createContext({
+  visible: false,
+  open: () => {},
+  close: () => {},
+  onPressYes: () => {},
+  onPressNo: () => {},
+});
+
+export const useDeleteModal = () => {
+  return React.useContext(ModalContext);
+};
+
 const DeleteModal = () => {
+  const context = useDeleteModal();
+
   return (
     <Modal
-      isVisible={this.props.visible}
-      onBackdropPress={this.props.close}
-      onRequestClose={this.props.close}
+      isVisible={context.visible}
+      onBackdropPress={context.close}
+      onRequestClose={context.close}
     >
       <View style={styles.modal}>
         <Text>
           Do you really want to continue ?
         </Text>
         <View style={styles.buttons}>
-          <Text onPress={this.props.onPressYes} style={styles.button}>Yes</Text>
-          <Text onPress={this.props.onPressNo} style={styles.button}>No</Text>
+          <Text onPress={context.onPressYes} style={styles.button}>Yes</Text>
+          <Text onPress={context.onPressNo} style={styles.button}>No</Text>
         </View>
       </View>
     </Modal>
   );
 };
 
-export default DeleteModal;
+export class DeleteModalProvider extends React.Component {
+  accept = null;
+  reject = null;
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      visible: false,
+      open: this.open.bind(this),
+      close: this.close.bind(this),
+      onPressYes: this.onPressYes.bind(this),
+      onPressNo: this.onPressNo.bind(this),
+    }
+  }
+
+  open = () => {
+    this.setState({ visible: true });
+    return new Promise((accept, reject) => {
+      this.accept = accept;
+      this.reject = reject;
+    })
+  };
+
+  close = () => {
+    this.accept = null;
+    this.reject = null;
+    this.setState({
+      visible: false
+    })
+  };
+
+  onPressYes = () => {
+    if (this.accept) {
+      this.accept(true);
+      this.close();
+    }
+  };
+
+  onPressNo = () => {
+    if (this.accept) {
+      this.accept(false);
+      this.close();
+    }
+  };
+
+  render() {
+    return (
+      <ModalContext.Provider value={this.state}>
+        { this.props.children }
+        <DeleteModal />
+      </ModalContext.Provider>
+    )
+  }
+}
